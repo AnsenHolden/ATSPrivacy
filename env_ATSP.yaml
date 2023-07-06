@@ -1,4 +1,5 @@
-name: ATSP
+# 不同的卡需要改动环境： A100 需要更换 cuda 11.x 及以上版本
+name: ATSP  # conda env create -f env_ATSP.yaml
 channels:
   - pytorch
   - defaults
@@ -11,7 +12,7 @@ dependencies:
   - cffi=1.15.0=py38hd667e15_1
   - charset-normalizer=2.0.4=pyhd3eb1b0_0
   - cryptography=37.0.1=py38h9ce1e76_0
-  - cudatoolkit=10.2.89=hfd86e86_1
+  - cudatoolkit=10.2.89=hfd86e86_1                # A100服务器时删除
   - ffmpeg=4.3=hf484d3e_0
   - freetype=2.11.0=h70c0345_0
   - giflib=5.2.1=h7b6447c_0
@@ -51,7 +52,7 @@ dependencies:
   - pyopenssl=22.0.0=pyhd3eb1b0_0
   - pysocks=1.7.1=py38h06a4308_0
   - python=3.8.13=h12debd9_0
-  - pytorch=1.12.0=py3.8_cuda10.2_cudnn7.6.5_0
+  - pytorch=1.12.0=py3.8_cuda10.2_cudnn7.6.5_0    # A100服务器时改为 conda install pytorch==1.12.0 torchvision==0.13.0 torchaudio==0.12.0 cudatoolkit=11.3 -c pytorch
   - pytorch-mutex=1.0=cuda
   - readline=8.1.2=h7f8727e_1
   - requests=2.28.1=py38h06a4308_0
@@ -59,8 +60,8 @@ dependencies:
   - six=1.16.0=pyhd3eb1b0_1
   - sqlite=3.38.5=hc218d9a_0
   - tk=8.6.12=h1ccaba5_0
-  - torchaudio=0.12.0=py38_cu102
-  - torchvision=0.13.0=py38_cu102
+  - torchaudio=0.12.0=py38_cu102                  # A100服务器时删除
+  - torchvision=0.13.0=py38_cu102                 # A100服务器时删除
   - typing_extensions=4.1.1=pyh06a4308_0
   - urllib3=1.26.9=py38h06a4308_0
   - wheel=0.37.1=pyhd3eb1b0_0
@@ -167,7 +168,6 @@ dependencies:
     - runipy==0.1.5
     - s3transfer==0.6.0
     - scikit-image==0.17.2
-    # 以下没有安装
     - scikit-learn==1.1.1
     - scipy==1.8.1
     - send2trash==1.8.0
@@ -184,7 +184,7 @@ dependencies:
     - tornado==6.2
     - tqdm==4.64.0
     - traitlets==5.3.0
-    # - transformers==4.22.2    # adding
+    - transformers==4.22.2    # adding
     - wcwidth==0.2.5
     - webencodings==0.5.1
     - werkzeug==2.2.1
