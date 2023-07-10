@@ -27,6 +27,7 @@ def write():
             sch_list = [str(sch) for sch in scheme_list[idx]]
             suf = '-'.join(sch_list)
             cmd = 'CUDA_VISIBLE_DEVICES={} python benchmark/search_transform_attack.py --aug_list={} --mode=aug --arch={} --data={} --epochs=100'.format(i%gpu_num, suf, opt.arch, opt.data)
+            '''epochs的值不应该是100, 而是50'''            
             print(cmd)
         print('}&')
 

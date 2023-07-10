@@ -1,5 +1,5 @@
 """
-CUDA_VISIBLE_DEVICES=0 python benchmark/search_transform_attack.py --aug_list=35-13-25 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=100
+CUDA_VISIBLE_DEVICES=0 python benchmark/search_transform_attack.py --aug_list=35-13-25 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
 """
 
 import os, sys
@@ -42,7 +42,7 @@ parser.add_argument('--aug_list', default=None, required=True, type=str, help='V
 parser.add_argument('--rlabel', default=False, type=bool, help='rlabel')
 parser.add_argument('--arch', default=None, required=True, type=str, help='Vision model.')          # ResNet20-4
 parser.add_argument('--data', default=None, required=True, type=str, help='Vision dataset.')        # cifar100
-parser.add_argument('--epochs', default=None, required=True, type=int, help='Vision epoch.')        # 100
+parser.add_argument('--epochs', default=None, required=True, type=int, help='Vision epoch.')        # 50
 parser.add_argument('--num_samples', default=5, type=int, help='Images per class')
 parser.add_argument('--tiny_data', default=False, action='store_true', help='Use 0.1 training dataset')
 opt = parser.parse_args()
@@ -51,8 +51,8 @@ opt = parser.parse_args()
 arch = opt.arch
 mode = opt.mode
 assert mode in ['normal', 'aug', 'crop']
-num_images = 1
-trained_model = True
+num_images = 1          # batch里仅有1张图片，模拟最容易被攻击的场景
+trained_model = True    # 似乎没有用到这个参数
 
 # init env
 setup = inversefed.utils.system_startup()               # 硬件环境
