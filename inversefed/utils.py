@@ -24,7 +24,7 @@ def system_startup(args=None, defs=None):
     if defs is not None:
         print(repr(defs))
     if torch.cuda.is_available():
-        print(f'GPU : {torch.cuda.get_device_name(device=device)}')
+        print(f'GPU : {torch.cuda.get_device_name(device=device)}')         # 显卡型号
     return setup
 
 def save_to_table(out_dir, name, dryrun, **kwargs):

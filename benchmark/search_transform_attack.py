@@ -55,9 +55,9 @@ num_images = 1          # batch里仅有1张图片，模拟最容易被攻击的
 trained_model = True    # 似乎没有用到这个参数
 
 # init env
-setup = inversefed.utils.system_startup()               # 硬件环境
-defs = inversefed.training_strategy('conservative')     # 训练参数
-defs.epochs = opt.epochs
+setup = inversefed.utils.system_startup()               # 硬件环境  {'device': device(type='cuda', index=0), 'dtype': torch.float32}
+defs = inversefed.training_strategy('conservative')     # 训练参数  lr=0.1 epoch=None batch_size=128 optimizer='SGD' augmentations = True ...
+defs.epochs = opt.epochs                                # defs.epochs=50
 
 
 def similarity_measures(img_batch, ref_batch, batched=True, method='fsim'):
