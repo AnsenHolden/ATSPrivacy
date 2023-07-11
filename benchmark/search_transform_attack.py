@@ -1,5 +1,5 @@
 """
-CUDA_VISIBLE_DEVICES=0 python benchmark/search_transform_attack.py --aug_list=35-13-25 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
+CUDA_VISIBLE_DEVICES=0 python benchmark/search_transform_attack.py --aug_list=37-5-47 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
 """
 
 import os, sys
@@ -265,9 +265,7 @@ def main():
     model.to(**setup)                   # 等价于 model.to(device=device(type='cuda', index=0), dtype=torch.float32), 将模型加载到设备上
     old_state_dict = copy.deepcopy(model.state_dict())                                                                      # 用于accuracy score
     model.load_state_dict(torch.load('checkpoints/tiny_data_{}_arch_{}/{}.pth'.format(opt.data, opt.arch, opt.epochs)))     # 用于privacy score
-
     model.eval()
-    metric_list = list()
 
     import time
     start = time.time()
@@ -275,7 +273,7 @@ def main():
     compute_privacy_score = True
     compute_acc_score = True
 
-    sample_list = {}
+    sample_list = {}    # 在validloader中，对所有样本按照类别进行整理
     label_key = 'fine_label' if opt.data == 'cifar100' else 'label'
     if opt.data == 'cifar100':
         num_classes = 100
@@ -303,6 +301,7 @@ def main():
             sample_list[sample[label_key]].append(idx)
 
     if compute_privacy_score:
+        metric_list = list()                # privacy score metric list
         num_samples = opt.num_samples       # images per class, default: 5
         for label in range(num_classes):    # 每个类别中取 5 张图片进行评估，将评估结果(取均值)存入 metric_list=[ , ..., ]
             metric = []
@@ -310,13 +309,15 @@ def main():
                 metric.append(reconstruct(sample_list[label][idx], model, loss_fn, trainloader, validloader, label_key))
                 # print('attach {}th in class {}, auglist:{} metric {}'.format(idx, label, opt.aug_list, metric))
             metric_list.append(np.mean(metric,axis=0))
+        # 测试输出
+        print('test metric_list length: {}; and its first item: {}.'.format(len(metric_list), metric_list[0]))
 
         pathname = 'search/data_{}_arch_{}/{}'.format(opt.data, opt.arch, opt.aug_list)
         root_dir = os.path.dirname(pathname)
         if not os.path.exists(root_dir):
             os.makedirs(root_dir)
         if len(metric_list) > 0:
-            print(np.mean(metric_list))     # 所有类别评估值的总体均值
+            print(np.mean(metric_list))         # 所有类别评估值的总体均值
             np.save(pathname, metric_list)
 
     if compute_acc_score:
