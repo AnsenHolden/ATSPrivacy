@@ -128,9 +128,9 @@ def build_vit_transform(normalize=True, policy_list=list(), opt=None, defs=None,
 
 
 def build_transform(normalize=True, policy_list=list(), opt=None, defs=None):
-    mode = opt.mode
+    mode = opt.mode             # 'aug'
     if opt.data == 'cifar100':
-        data_mean, data_std = inversefed.consts.cifar10_mean, inversefed.consts.cifar10_std
+        data_mean, data_std = inversefed.consts.cifar10_mean, inversefed.consts.cifar10_std     # 啊？why using cifar10_mean in cifar100?
     elif opt.data == 'FashionMinist':
         data_mean, data_std  = (0.1307,), (0.3081,)
     elif opt.data == 'ImageNet':
@@ -174,8 +174,7 @@ def build_transform(normalize=True, policy_list=list(), opt=None, defs=None):
         
         if len(policy_list) > 0 and mode == 'aug':
             transform_list.append(construct_policy(policy_list))
-    print(transform_list)
-
+    print(transform_list)                                           # 打印用到的转换子策略
 
     transform_list.extend([
         transforms.ToTensor(),
@@ -249,13 +248,13 @@ def vit_preprocess(opt, defs, valid=False):
 
 
 
-def preprocess(opt, defs, valid=False):
+def preprocess(opt, defs, valid=False):     # valid = True
     if opt.data == 'cifar100':
-        loss_fn, trainloader, validloader =  inversefed.construct_dataloaders('CIFAR100', defs)
+        loss_fn, trainloader, validloader =  inversefed.construct_dataloaders('CIFAR100', defs)     # 加载原始数据集
         trainset, validset = _build_cifar100('~/data/')
 
         if len(opt.aug_list) > 0:
-            policy_list = split(opt.aug_list)
+            policy_list = split(opt.aug_list)       # policy_list = [35, 13, 25]
         else:
             policy_list = []
         if not valid:
@@ -263,9 +262,8 @@ def preprocess(opt, defs, valid=False):
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=defs.batch_size,
                     shuffle=True, drop_last=False, num_workers=4, pin_memory=True)
 
-
         if valid:
-            validset.transform = build_transform(True, policy_list, opt, defs)
+            validset.transform = build_transform(True, policy_list, opt, defs)                      # 加入防御用的转换策略
         validloader = torch.utils.data.DataLoader(validset, batch_size=defs.batch_size,
                 shuffle=False, drop_last=False, num_workers=4, pin_memory=True)
 

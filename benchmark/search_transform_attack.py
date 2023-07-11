@@ -258,13 +258,13 @@ def reconstruct(idx, model, loss_fn, trainloader, validloader, label_key='fine_l
 
 def main():
     if opt.arch not in ['vit']:         # opt.arch=ResNet20-4   opt.data=cifar100
-        loss_fn, trainloader, validloader = preprocess(opt, defs, valid=True)
-        model = create_model(opt)   
+        loss_fn, trainloader, validloader = preprocess(opt, defs, valid=True)       # trainloader 数据未经过转换    validloader 为转换后的数据
+        model = create_model(opt)       # randomly initialized model for accuracy quantification
     else:
-        loss_fn, trainloader, validloader, model, mean_std, scale_size = vit_preprocess(opt, defs, valid=True) # batch size rescale to 16
-    model.to(**setup)
-    old_state_dict = copy.deepcopy(model.state_dict())
-    model.load_state_dict(torch.load('checkpoints/tiny_data_{}_arch_{}/{}.pth'.format(opt.data, opt.arch, opt.epochs)))
+        loss_fn, trainloader, validloader, model, mean_std, scale_size = vit_preprocess(opt, defs, valid=True)      # batch size rescale to 16
+    model.to(**setup)                   # 等价于 model.to(device=device(type='cuda', index=0), dtype=torch.float32), 将模型加载到设备上
+    old_state_dict = copy.deepcopy(model.state_dict())                                                                      # 用于accuracy score
+    model.load_state_dict(torch.load('checkpoints/tiny_data_{}_arch_{}/{}.pth'.format(opt.data, opt.arch, opt.epochs)))     # 用于privacy score
 
     model.eval()
     metric_list = list()

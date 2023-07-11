@@ -14,9 +14,7 @@ import numpy as np
 from ..utils import set_random_seed
 
 
-
-
-def construct_model(model, num_classes=10, seed=None, num_channels=3, modelkey=None):
+def construct_model(model, num_classes=10, seed=None, num_channels=3, modelkey=None):   # model='ResNet20-4' num_classes=100 num_channels=3
     """Return various models."""
     """
     if modelkey is None:

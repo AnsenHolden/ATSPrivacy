@@ -16,7 +16,7 @@ from .datasets import CelebAForGender, CelebAForMLabel, CelebAForSmile, CelebAFa
 
 def construct_dataloaders(dataset, defs, data_path='~/data/', shuffle=True, normalize=True):
     """Return a dataloader with given dataset and augmentation, normalize data?."""
-    path = os.path.expanduser(data_path)
+    path = os.path.expanduser(data_path)        # 展开路径中的'~/'
 
     if dataset == 'CIFAR10':
         trainset, validset = _build_cifar10(path, defs.augmentations, normalize)
@@ -58,13 +58,13 @@ def construct_dataloaders(dataset, defs, data_path='~/data/', shuffle=True, norm
         trainset, validset = _build_bsds_dn(path, defs.augmentations, normalize, noise_level=25 / 255, RGB=True)
         loss_fn = PSNR()
 
-    if MULTITHREAD_DATAPROCESSING:
+    if MULTITHREAD_DATAPROCESSING:  # consts.py > MULTITHREAD_DATAPROCESSING = 4
         num_workers = min(torch.get_num_threads(), MULTITHREAD_DATAPROCESSING) if torch.get_num_threads() > 1 else 0
     else:
         num_workers = 0
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=min(defs.batch_size, len(trainset)),
-                                              shuffle=shuffle, drop_last=True, num_workers=num_workers, pin_memory=PIN_MEMORY)
+                                              shuffle=shuffle, drop_last=True, num_workers=num_workers, pin_memory=PIN_MEMORY)      # consts.py > PIN_MEMORY = True
     validloader = torch.utils.data.DataLoader(validset, batch_size=min(defs.batch_size, len(trainset)),
                                               shuffle=False, drop_last=False, num_workers=num_workers, pin_memory=PIN_MEMORY)
 
@@ -98,21 +98,21 @@ def _build_cifar10(data_path, augmentations=True, normalize=True):
 
     return trainset, validset
 
-def _build_cifar100(data_path, augmentations=True, normalize=True):
+def _build_cifar100(data_path, augmentations=True, normalize=True): # 纯粹是预处理，并没有加入转换策略
     """Define CIFAR-100 with everything considered."""
-    # Load data
+    # Load data data_path = '~/data/'
     trainset = torchvision.datasets.CIFAR100(root=data_path, train=True, download=True, transform=transforms.ToTensor())
     validset = torchvision.datasets.CIFAR100(root=data_path, train=False, download=True, transform=transforms.ToTensor())
 
     if cifar100_mean is None:
         data_mean, data_std = _get_meanstd(trainset)
-    else:
+    else:                                                   # consts.py > cifar100_mean
         data_mean, data_std = cifar100_mean, cifar100_std
 
     # Organize preprocessing
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(data_mean, data_std) if normalize else transforms.Lambda(lambda x: x)])
+        transforms.Normalize(data_mean, data_std) if normalize else transforms.Lambda(lambda x: x)])    # 归一化
     if augmentations:
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
