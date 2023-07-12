@@ -69,7 +69,11 @@ def construct_policy(policy_list):
     if isinstance(policy_list[0], list):
         return sub_transform(policy_list)
     elif isinstance(policy_list[0], int):
-        print('used sub-transforms: {}'.format([policies[idx] for idx in policy_list]))     # 打印用到的转换子策略 
+        # # 打印用到的转换子策略 
+        # print('used sub-transforms: {}'.format(
+        #     ['index{}: SubPolicy({}, {}, {})'.format(idx, policies[idx].p1, policies[idx].operation1, policies[idx].magnitude1) for idx in policy_list]
+        #     )
+        # )
         return sub_transform([policy_list])
     else:
         raise NotImplementedError
@@ -176,6 +180,7 @@ def build_transform(normalize=True, policy_list=list(), opt=None, defs=None):
         if len(policy_list) > 0 and mode == 'aug':
             transform_list.append(construct_policy(policy_list))
     # print(transform_list)                                           # 打印用到的转换子策略，笑死，根本打印不出来
+    print('sub-policy list: {}'.format(policy_list))
 
     transform_list.extend([
         transforms.ToTensor(),

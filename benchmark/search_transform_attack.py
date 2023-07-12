@@ -1,5 +1,5 @@
 """
-CUDA_VISIBLE_DEVICES=0 python benchmark/search_transform_attack.py --aug_list=37-5-47 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
+CUDA_VISIBLE_DEVICES=0 python benchmark/search_transform_attack.py --aug_list=13-43-18 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
 """
 
 import os, sys
