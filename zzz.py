@@ -10,6 +10,23 @@ class ppp:
         return self.func(y)
 
 ui = ppp(1)(4)
-
 print(ui)
+'''
+5
+'''
+
+class ttt:
+    def __init__(self, pa) -> None:
+        self.pa = pa
+    
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        print(self.pa)
+        return True
+     
+si = ttt(1)()
+print(si)
+'''
+1
+True
+'''
         

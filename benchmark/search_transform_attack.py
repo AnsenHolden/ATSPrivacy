@@ -309,15 +309,13 @@ def main():
                 metric.append(reconstruct(sample_list[label][idx], model, loss_fn, trainloader, validloader, label_key))
                 # print('attach {}th in class {}, auglist:{} metric {}'.format(idx, label, opt.aug_list, metric))
             metric_list.append(np.mean(metric,axis=0))
-        # 测试输出
-        print('test metric_list length: {}; and its first item: {}.'.format(len(metric_list), metric_list[0]))
 
         pathname = 'search/data_{}_arch_{}/{}'.format(opt.data, opt.arch, opt.aug_list)
         root_dir = os.path.dirname(pathname)
         if not os.path.exists(root_dir):
             os.makedirs(root_dir)
         if len(metric_list) > 0:
-            print(np.mean(metric_list))         # 所有类别评估值的总体均值
+            print('metric_list length: {}; and its mean value: {}.'.format(len(metric_list), np.mean(metric_list)))     # 所有类别评估值的总体均值
             np.save(pathname, metric_list)
 
     if compute_acc_score:
