@@ -177,8 +177,9 @@ def accuracy_metric(idx_list, model, loss_fn, trainloader, validloader, label_ke
 
 
 def reconstruct(idx, model, loss_fn, trainloader, validloader, label_key='fine_label'):
+    # dm, ds用于随机噪声图像的标准化
     if opt.data == 'cifar100':
-        dm = torch.as_tensor(inversefed.consts.cifar10_mean, **setup)[:, None, None]
+        dm = torch.as_tensor(inversefed.consts.cifar10_mean, **setup)[:, None, None]        # 啊? why using cifar10?
         ds = torch.as_tensor(inversefed.consts.cifar10_std, **setup)[:, None, None]
     elif opt.data == 'FashionMinist':
         dm = torch.Tensor([0.1307]).view(1, 1, 1).cuda()
@@ -209,7 +210,7 @@ def reconstruct(idx, model, loss_fn, trainloader, validloader, label_key='fine_l
         ground_truth = collate_fn(ground_truth, label_key=label_key)['pixel_values'].to(**setup)
 
     else: 
-        while len(labels) < num_images:
+        while len(labels) < num_images:             # num_images=1 batch里仅有1张图像
             img, label = validloader.dataset[idx]
             idx += 1
             if label not in labels:
@@ -231,10 +232,10 @@ def reconstruct(idx, model, loss_fn, trainloader, validloader, label_key='fine_l
     dw_list = list()
     dx_list = list()
     bin_num = 20
-    noise_input = (torch.rand((ground_truth.shape)).cuda() - dm) / ds
-    for dis_iter in range(bin_num+1):
+    noise_input = (torch.rand((ground_truth.shape)).cuda() - dm) / ds       # 随机噪声图像
+    for dis_iter in range(bin_num+1):       # [0, 1, ..., 20]
         model.zero_grad()
-        fake_ground_truth = (1.0 / bin_num * dis_iter * ground_truth + 1. / bin_num * (bin_num - dis_iter) * noise_input).detach()
+        fake_ground_truth = (1.0 / bin_num * dis_iter * ground_truth + 1. / bin_num * (bin_num - dis_iter) * noise_input).detach()      # 混合图像
         fake_dw = calculate_dw(model, fake_ground_truth, labels, loss_fn)
         dw_loss = sum([cal_dis(dw_a, dw_b, metric=metric) for dw_a, dw_b in zip(fake_dw, input_gradient)]) / len(input_gradient)
 
@@ -274,7 +275,7 @@ def main():
     compute_acc_score = True
 
     sample_list = {}    # 在validloader中，对所有样本按照类别进行整理
-    label_key = 'fine_label' if opt.data == 'cifar100' else 'label'
+    label_key = 'fine_label' if opt.data == 'cifar100' else 'label'     # 在cifar100中用不到
     if opt.data == 'cifar100':
         num_classes = 100
     elif opt.data == 'FashionMinist':
@@ -315,7 +316,7 @@ def main():
         if not os.path.exists(root_dir):
             os.makedirs(root_dir)
         if len(metric_list) > 0:
-            print('metric_list length: {}; and its mean value: {}.'.format(len(metric_list), np.mean(metric_list)))     # 所有类别评估值的总体均值
+            print('*Privacy Score*: {}(mean value).'.format(np.mean(metric_list)))          # 所有类别评估值的总体均值
             np.save(pathname, metric_list)
 
     if compute_acc_score:
@@ -327,15 +328,14 @@ def main():
             score = accuracy_metric(large_samle_list, model, loss_fn, trainloader, validloader, label_key)
             score_list.append(score)
     
-        print('time cost ', time.time() - start)
-    
         pathname = 'accuracy/data_{}_arch_{}/{}'.format(opt.data, opt.arch, opt.aug_list)
         root_dir = os.path.dirname(pathname)
         if not os.path.exists(root_dir):
             os.makedirs(root_dir)
         np.save(pathname, score_list)
-        print(score_list)
+        print('*Accuracy Score*: {}.'.format(score_list))
 
+    print('*Time Cost*: ', time.time() - start, 's')
 
 if __name__ == '__main__':
     main()
