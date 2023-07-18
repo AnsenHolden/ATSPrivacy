@@ -245,6 +245,7 @@ def reconstruct(idx, model, loss_fn, trainloader, validloader, label_key='fine_l
 
 
     def area_ratio(y_list, inter):
+        # 这 inter 参数似乎没起作用啊？interval_distance感觉完全没必要计算
         area = 0
         max_area = inter * bin_num
         for idx in range(1, len(y_list)):
@@ -316,7 +317,7 @@ def main():
         if not os.path.exists(root_dir):
             os.makedirs(root_dir)
         if len(metric_list) > 0:
-            print('*Privacy Score*: {}(mean value).'.format(np.mean(metric_list)))          # 所有类别评估值的总体均值
+            print('*Privacy Score Mean*: {}.'.format(np.mean(metric_list)))          # 所有类别评估值的总体均值
             np.save(pathname, metric_list)
 
     if compute_acc_score:
@@ -333,7 +334,7 @@ def main():
         if not os.path.exists(root_dir):
             os.makedirs(root_dir)
         np.save(pathname, score_list)
-        print('*Accuracy Score*: {}.'.format(score_list))
+        print('*Accuracy Score list*: {}.'.format(score_list))
 
     print('*Time Cost*: ', time.time() - start, 's')
 
