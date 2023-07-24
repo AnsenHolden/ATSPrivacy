@@ -1,8 +1,9 @@
 """
 python benchmark/search_transform_attack_modify.py --aug_list=13-43-18 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
+python benchmark/search_transform_attack_modify.py --aug_list=21-3-16 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
 
 top 2 policies:
-    13-43-18
+    13-43-18    pri_score = 0.2237 acc_score = -69.0486
     21-3-16
 """
 
@@ -184,6 +185,7 @@ def accuracy_metric(idx_list, model, loss_fn, trainloader, validloader, label_ke
         ground_truth = torch.stack(ground_truth)
         
     labels = torch.cat(labels)
+    
     model.zero_grad()
     jacobs, labels= get_batch_jacobian(model, ground_truth, labels)
     jacobs = jacobs.reshape(jacobs.size(0), -1).cpu().numpy()

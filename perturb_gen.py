@@ -1,5 +1,5 @@
 """
-CUDA_VISIBLE_DEVICES=0 python perturb_gen.py --arch=ResNet20-4 --data=cifar100 --epochs=50 --num_samples 10
+python perturb_gen.py --arch=ResNet20-4 --data=cifar100 --epochs=50 --num_samples 10
 """
 
 import os, sys
@@ -57,10 +57,6 @@ defs.epochs = opt.epochs                                # defs.epochs=50
 epsilon = 0.01
 alpha = 0.7 
 CIFAR100_NUM_PER_CLASS = 100
-
-
-def initial_perturb():
-    pass
 
 
 def calculate_dw(model, imgs, labels, loss_fn, retain=False):
@@ -164,18 +160,14 @@ def privacy_score(idx, model, loss_fn, dataloader):
     # fgsm attack
     model.zero_grad()
     imgs_grad = torch.autograd.grad(init_auc_gradsim, init_imgs)[0]         # 计算auc_gradsim关于输入图像的梯度
-    # init_imgs_denorm = denorm(init_imgs)                                    # 对输入图像 去归一化
-    # pert_imgs = fgsm_attack(init_imgs_denorm, epsilon, imgs_grad)    
-    # pert_data = (pert_imgs[0], labels)      # batch size 只有1
-    pert_imgs = fgsm_attack(init_imgs, epsilon, imgs_grad)
-    pert_data = (pert_imgs[0], labels)          # batch size 只有1
+    init_imgs_denorm = denorm(init_imgs)                                    # 对输入图像 去归一化
+    pert_imgs = fgsm_attack(init_imgs_denorm, epsilon, imgs_grad)
+    pert_imgs_norm = (pert_imgs - dm) / ds
+    pert_data = (pert_imgs_norm[0].detach(), labels)      # batch size 只有1
     
     # 图像idx扰动后的AUC(GradSim)评估值
-    # pert_imgs_norm = (pert_imgs - dm) / ds
-    # pert_ref_dw = calculate_dw(model, pert_imgs_norm, labels, loss_fn, retain=False)            # 参照梯度
-    # pert_auc_gradsim = auc_gradsim(model, loss_fn, pert_imgs_norm, labels, noise_input, pert_ref_dw, bin_num, metric, cal_grad=False)
-    pert_ref_dw = calculate_dw(model, pert_imgs, labels, loss_fn, retain=False)            # 参照梯度
-    pert_auc_gradsim = auc_gradsim(model, loss_fn, pert_imgs, labels, noise_input, pert_ref_dw, bin_num, metric, cal_grad=False)
+    pert_ref_dw = calculate_dw(model, pert_imgs_norm, labels, loss_fn, retain=False)            # 参照梯度
+    pert_auc_gradsim = auc_gradsim(model, loss_fn, pert_imgs_norm, labels, noise_input, pert_ref_dw, bin_num, metric, cal_grad=False)
     
     return init_auc_gradsim, pert_auc_gradsim, pert_data
 
@@ -199,13 +191,7 @@ def get_batch_jacobian(net, x, target):
     return jacob, target.detach()
 
 
-def accuracy_metric(idx_list, model, dataset):
-    if opt.data == 'cifar100':
-        dm = torch.as_tensor(inversefed.consts.cifar10_mean, **setup)[:, None, None]        # 啊? why using cifar10?
-        ds = torch.as_tensor(inversefed.consts.cifar10_std, **setup)[:, None, None]
-    else:
-        raise NotImplementedError
-    
+def accuracy_metric(idx_list, model, dataset):   
     imgs, labels = [], []
     
     for idx in idx_list:
@@ -255,16 +241,6 @@ if __name__ == '__main__':
             label = label.item()
         sample_list[label].append(idx)
         mapping[idx] = label * CIFAR100_NUM_PER_CLASS + len(sample_list[label]) - 1
-        
-    # 计算每一类图像的 adversarial perturbation
-    # num_samples = opt.num_samples
-    # for label in range(num_classes):
-    #     # idx = sample_list[label][0 ~ num_samples-1]
-    #     # img, label = validloader.dataset[idx]
-        
-    #     perturb_tensor = initial_perturb()  # 初始化 adversarial perturbation
-        
-    #     print(perturb_tensor)
     
     # 按照FGSM方法对每一张图片生成一个对抗扰动；
     # 测评时，对每一张施加对抗扰动的图像均测量privacy score；将施加扰动后的图像存储，然后仿照ATSP采样进行Accuracy Score的衡量。
@@ -299,7 +275,7 @@ if __name__ == '__main__':
         
         save_path = 'show_pics/epsilon-{}/'.format(epsilon)
         init_im, _ = validloader.dataset[sample_list[label][0]]
-        init_im_denorm = denorm(init_im)
+        init_im_denorm = denorm(init_im)       
         pert_im_denorm = denorm(class_perturbed_dataset[0][0])
         torchvision.utils.save_image(init_im_denorm, save_path+'{}-init.png'.format(label))
         torchvision.utils.save_image(pert_im_denorm, save_path+'{}-pert.png'.format(label))
@@ -316,25 +292,17 @@ if __name__ == '__main__':
     pri_eval_time_cost = time.time() - pri_eval_start
     print('----------------Privacy Evaluation Completed! Time Cost: {} s----------------'.format(int(pri_eval_time_cost)))
     
-    print('#\n#')
-    print("Accuracy Score Evaluation Start!")
-    acc_eval_start = time.time()
     # accuracy score evaluation
-    # 均值，可视化， 时间, 扰动后的图 totensor()，归一化, 可选是否评价 acc_scores_init
+    print("#\n#\nAccuracy Score Evaluation Start!")
+    acc_eval_start = time.time()
     model.load_state_dict(old_state_dict)
+    # 均值，可视化， 时间, 扰动后的图 totensor()，归一化
     acc_scores_init = []
     acc_scores_pert = []
-    test_same = True
     for run in range(10):
         run_start = time.time()
         init_samples = [200 + run * 100 + i for i in range(100)]
         pert_samples = [mapping[200 + run * 100 + i] for i in range(100)]
-        
-        # test 是否是相同的图
-        if test_same:
-            torchvision.utils.save_image(validloader.dataset[init_samples[50]][0], 'test-same-init.png')
-            torchvision.utils.save_image(perturbed_dataset[pert_samples[50]][0], 'test-same-pert.png')
-            test_same = False
         
         acc_score_init = accuracy_metric(init_samples, model, validloader.dataset)
         acc_score_pert = accuracy_metric(pert_samples, model, perturbed_dataset)
@@ -354,4 +322,5 @@ if __name__ == '__main__':
         
     # accuracy score 采样5张取近似；原数据的acc，改后数据的acc
     # 对比原模型搜出来最好的
+    # 很难比较，还是要运行一下原模型来获得最好的搜索策略，论文里给的并不靠谱
     
