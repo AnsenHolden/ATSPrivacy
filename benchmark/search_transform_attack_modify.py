@@ -341,7 +341,7 @@ def main():
         acc_score = np.mean(np.array(score_list))
         acc_time = time.time() - acc_start
         print('Accuracy Evaluation: (time cost: {} s)'.format(int(acc_time)))
-        print('\tAccuracy Score: ', '%.4f' % acc_score)
+        print('\tAccuracy Score: ', '%.4f' % acc_score) 
         
 
 if __name__ == '__main__':
