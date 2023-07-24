@@ -1,5 +1,5 @@
 """
-python benchmark/search_transform_attack.py --aug_list=13-43-18 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
+python benchmark/search_transform_attack_modify.py --aug_list=13-43-18 --mode=aug --arch=ResNet20-4 --data=cifar100 --epochs=50
 
 top 2 policies:
     13-43-18
